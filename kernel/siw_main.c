@@ -766,5 +766,25 @@ static void __exit siw_exit_module(void)
 	pr_info("SoftiWARP detached\n");
 }
 
+void sk_stream_write_space(struct sock *sk)
+{
+	struct socket *sock = sk->sk_socket;
+	struct socket_wq *wq;
+
+	if (sk_stream_is_writeable(sk) && sock) {
+		clear_bit(SOCK_NOSPACE, &sock->flags);
+
+		rcu_read_lock();
+		wq = rcu_dereference(sk->sk_wq);
+		if (skwq_has_sleeper(wq))
+			wake_up_interruptible_poll(&wq->wait, POLLOUT |
+						POLLWRNORM | POLLWRBAND);
+		if (wq && wq->fasync_list && !(sk->sk_shutdown & SEND_SHUTDOWN))
+			sock_wake_async(wq, SOCK_WAKE_SPACE, POLL_OUT);
+		rcu_read_unlock();
+	}
+}
+
+
 module_init(siw_init_module);
 module_exit(siw_exit_module);

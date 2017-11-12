@@ -160,7 +160,7 @@ struct siw_umem *siw_umem_get(u64 start, u64 len)
 		got = 0;
 		while (nents) {
 			struct page **plist = &umem->page_chunk[i].p[got];
-			rv = get_user_pages(first_page_va, nents, 1, 1, plist,
+			rv = get_user_pages(first_page_va, nents, FOLL_WRITE|FOLL_FORCE, plist,
 					    NULL);
 			if (rv < 0 )
 				goto out;

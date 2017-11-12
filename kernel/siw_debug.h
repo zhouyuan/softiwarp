@@ -42,6 +42,7 @@
 
 #include <linux/uaccess.h>
 #include <linux/hardirq.h>	/* in_interrupt() */
+#include <linux/smp.h>
 
 /*
  * dprint: Selective debug printing
@@ -137,13 +138,13 @@ extern void siw_print_qp_attr_mask(enum ib_qp_attr_mask, char *);
 	do {								\
 		if ((dbgcat) & DPRINT_MASK) {				\
 			if (!in_interrupt())				\
-				pr_info("(%5d/%1d) %s" fmt,		\
+				pr_info("(%5d/%d) %s" fmt,		\
 					current->pid,			\
-					current_thread_info()->cpu,	\
+					smp_processor_id(),		\
 					__func__, ## args);		\
 			else						\
-				pr_info("( irq /%1d) %s" fmt,		\
-					current_thread_info()->cpu,	\
+				pr_info("( irq /%d) %s" fmt,		\
+					smp_processor_id(),		\
 					__func__, ## args);		\
 		}							\
 	} while (0)
